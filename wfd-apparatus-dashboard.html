@@ -597,14 +597,13 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey:            "AIzaSyDCKm-qL1FKLeaBcU0Q6mcpCp1x6icNR8c",
-  authDomain:        "wfd-apparatus.firebaseapp.com",
-  databaseURL:       "https://wfd-apparatus-default-rtdb.firebaseio.com",
-  projectId:         "wfd-apparatus",
-  storageBucket:     "wfd-apparatus.firebasestorage.app",
-  messagingSenderId: "411236676737",
-  appId:             "1:411236676737:web:733057e663dcb385e18980",
-  measurementId:     "G-WBP2FFD0WV"
+  apiKey:            "%%FB_API_KEY%%",
+  authDomain:        "%%FB_AUTH_DOMAIN%%",
+  databaseURL:       "%%FB_DATABASE_URL%%",
+  projectId:         "%%FB_PROJECT_ID%%",
+  storageBucket:     "%%FB_STORAGE_BUCKET%%",
+  messagingSenderId: "%%FB_MESSAGING_SENDER_ID%%",
+  appId:             "%%FB_APP_ID%%"
 };
 
 const fbApp = initializeApp(firebaseConfig);
