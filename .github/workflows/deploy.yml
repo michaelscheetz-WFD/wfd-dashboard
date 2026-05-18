@@ -1,0 +1,33 @@
+name: Deploy WFD Dashboard
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Inject Firebase secrets into HTML
+        run: |
+          sed -i "s|%%FB_API_KEY%%|${{ secrets.FB_API_KEY }}|g" wfd-apparatus-dashboard.html
+          sed -i "s|%%FB_AUTH_DOMAIN%%|${{ secrets.FB_AUTH_DOMAIN }}|g" wfd-apparatus-dashboard.html
+          sed -i "s|%%FB_DATABASE_URL%%|${{ secrets.FB_DATABASE_URL }}|g" wfd-apparatus-dashboard.html
+          sed -i "s|%%FB_PROJECT_ID%%|${{ secrets.FB_PROJECT_ID }}|g" wfd-apparatus-dashboard.html
+          sed -i "s|%%FB_STORAGE_BUCKET%%|${{ secrets.FB_STORAGE_BUCKET }}|g" wfd-apparatus-dashboard.html
+          sed -i "s|%%FB_MESSAGING_SENDER_ID%%|${{ secrets.FB_MESSAGING_SENDER_ID }}|g" wfd-apparatus-dashboard.html
+          sed -i "s|%%FB_APP_ID%%|${{ secrets.FB_APP_ID }}|g" wfd-apparatus-dashboard.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
