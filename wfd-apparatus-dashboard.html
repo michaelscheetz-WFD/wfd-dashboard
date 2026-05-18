@@ -330,6 +330,12 @@ body::before {
   letter-spacing:0.08em; text-transform:uppercase; padding:4px 12px;
   background:transparent; border:1px solid #ef444444; border-radius:3px; color:var(--oos); cursor:pointer;
 }
+.btn-export-csv {
+  font-family:var(--cond); font-size:11px; font-weight:700;
+  letter-spacing:0.08em; text-transform:uppercase; padding:4px 12px;
+  background:transparent; border:1px solid #22c55e44; border-radius:3px;
+  color:var(--active); cursor:pointer;
+}
 .h-table-wrap { overflow-x:auto; }
 .h-table { width:100%; border-collapse:collapse; font-size:12px; }
 .h-table th {
@@ -436,6 +442,7 @@ body::before {
     <div class="h-controls">
       <button class="h-filter on" data-role="All">All</button>
       <button class="btn-clear-h" id="btn-clear-h">Clear History</button>
+      <button class="btn-export-csv" id="btn-export-csv">⬇ Export CSV</button>
     </div>
     <div class="h-table-wrap">
       <div class="h-empty" id="h-empty">No OOS history recorded yet.</div>
@@ -1047,7 +1054,69 @@ document.getElementById("maint-wrap").addEventListener("click", e => {
   if (fb) { mlogFilter = fb.dataset.mf; renderMaintLog(); }
 });
 
-// Maintenance send
+// ── EXPORT CSV ────────────────────────────────────────────────────────────────
+function exportCSV() {
+  if (!hist.length) { alert("No OOS history to export yet."); return; }
+
+  // Build per-unit summary
+  const unitSummary = {};
+  hist.forEach(r => {
+    if (!unitSummary[r.unit]) {
+      unitSummary[r.unit] = { unit: r.unit, cat: r.cat, events: 0, totalDays: 0, longest: 0 };
+    }
+    unitSummary[r.unit].events++;
+    unitSummary[r.unit].totalDays += r.days;
+    unitSummary[r.unit].longest = Math.max(unitSummary[r.unit].longest, r.days);
+  });
+
+  // Sheet 1 — full event log
+  const logRows = [
+    ["WILMETTE FIRE DEPARTMENT — OOS HISTORY REPORT"],
+    [`Generated: ${new Date().toLocaleString("en-US")}`],
+    [],
+    ["Category", "Unit", "OOS Date", "Return Date", "Days Out", "Reason"],
+    ...hist
+      .slice()
+      .sort((a,b) => b.oosDate.localeCompare(a.oosDate))
+      .map(r => [r.cat, r.unit, r.oosDate, r.returnDate, r.days, r.reason || ""])
+  ];
+
+  // Sheet 2 — per-unit summary (appended after blank row)
+  const summaryRows = [
+    [],
+    ["── PER-UNIT SUMMARY ──"],
+    ["Unit", "Category", "Total OOS Events", "Total Days OOS", "Avg Days Per Event", "Longest OOS (days)"],
+    ...Object.values(unitSummary)
+      .sort((a,b) => b.totalDays - a.totalDays)
+      .map(s => [
+        s.unit, s.cat, s.events, s.totalDays,
+        (s.totalDays / s.events).toFixed(1),
+        s.longest
+      ])
+  ];
+
+  const allRows = [...logRows, ...summaryRows];
+
+  // Convert to CSV string
+  const csv = allRows.map(row =>
+    row.map(cell => {
+      const str = String(cell ?? "");
+      return str.includes(",") || str.includes('"') || str.includes("\n")
+        ? `"${str.replace(/"/g, '""')}"` : str;
+    }).join(",")
+  ).join("\n");
+
+  // Download
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = `WFD-OOS-History-${todayStr()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("btn-export-csv").addEventListener("click", exportCSV);
 document.getElementById("btn-send-m").addEventListener("click", () => {
   const unit = document.getElementById("m-unit").value;
   const desc = document.getElementById("m-desc").value.trim();
