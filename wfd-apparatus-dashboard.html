@@ -745,6 +745,11 @@ function renderFleet() {
       }
 
       cat.units.forEach(unit => {
+        // If 217 is covering the tower at Station 26, hide it from Station 27
+        const is217CoveringTower = unit === "217 — Engine 27R (2013 E-One)" &&
+          cat.id === "eng27" && !!unitStatus["__cover_eng26"];
+        if (is217CoveringTower) return;
+
         const us     = getUS(unit);
         const uState = us.state || "active";
 
